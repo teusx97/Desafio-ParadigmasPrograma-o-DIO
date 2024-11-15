@@ -1,0 +1,89 @@
+public abstract class ContaBancaria {
+    private String numeroConta;
+    private double saldo;
+
+    public ContaBancaria(String numeroConta, double saldoInicial) {
+        this.numeroConta = numeroConta;
+        this.saldo = saldoInicial;
+    }
+
+    public String getNumeroConta() {
+        return numeroConta;
+    }
+
+    public double getSaldo() {
+        return saldo;
+    }
+
+    public void depositar(double valor) {
+        if (valor > 0) {
+            saldo += valor;
+        }
+    }
+
+    public boolean sacar(double valor) {
+        if (valor > 0 && saldo >= valor) {
+            saldo -= valor;
+            return true;
+        }
+        return false; // Saldo insuficiente
+    }
+
+    @Override
+    public String toString() {
+        return "Conta: " + numeroConta + ", Saldo: " + saldo;
+    }
+}
+
+public class ContaCorrente extends ContaBancaria {
+    public ContaCorrente(String numeroConta, double saldoInicial) {
+        super(numeroConta, saldoInicial);
+    }
+}
+
+public class ContaPoupanca extends ContaBancaria {
+    public ContaPoupanca(String numeroConta, double saldoInicial) {
+        super(numeroConta, saldoInicial);
+    }
+}
+
+public class SistemaBancario {
+    public static void main(String[] args) {
+        ContaCorrente conta1 = new ContaCorrente("12345", 1000);
+        ContaPoupanca conta2 = new ContaPoupanca("67890", 500);
+
+        // Testes de saque
+        conta1.sacar(200);
+        conta2.sacar(600); // Deve falhar devido a saldo insuficiente
+
+        System.out.println(conta1);
+        System.out.println(conta2);
+    }
+}
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
+import org.aspectj.lang.annotation.After;
+import org.aspectj.lang.annotation.AfterThrowing;
+import org.aspectj.lang.annotation.Pointcut;
+
+@Aspect
+public class LogAspect {
+
+    @Pointcut("execution(boolean ContaBancaria.sacar(..))")
+    public void saqueConta() {}
+
+    @Before("saqueConta() && args(valor)")
+    public void verificarSaldo(double valor) {
+        System.out.println("Tentativa de saque de: " + valor);
+    }
+
+    @After("saqueConta() && args(valor)")
+    public void logarSucesso(double valor) {
+        System.out.println("Saque processado com sucesso: " + valor);
+    }
+
+    @AfterThrowing(pointcut = "saqueConta() && args(valor)", throwing = "e")
+    public void logarErro(double valor, Throwable e) {
+        System.out.println("Erro ao processar saque: " + e.getMessage());
+    }
+}
